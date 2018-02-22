@@ -1,5 +1,8 @@
 package com.curiousfreaks.grewords;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -20,6 +23,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Toast.makeText(view.getContext(),"CLicked opening allWords",Toast.LENGTH_SHORT).show();
+                //Intent intent = new Intent(this,allWordsActivity.class);
+                //startActivity(intent);
+                greWordsDBHelper dbHelper=new greWordsDBHelper(getApplicationContext());
+                SQLiteDatabase db=dbHelper.getWritableDatabase();
+                ContentValues value=new ContentValues();
+                value.put("ID",1);
+                value.put("WORD","Alacrity");
+                value.put("ATTR1","Enjoying Movements");
+                long newRow=db.insert("WORDLIST",null,value);
+
             }
         });
 
