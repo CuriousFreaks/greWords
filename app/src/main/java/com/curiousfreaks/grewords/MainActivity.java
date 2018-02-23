@@ -11,28 +11,21 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-
+    public static final String TAG = "Curious Freaks";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         final Button allWords, flashCards, myWordsList;
+
         allWords=findViewById(R.id.allwords);
         allWords.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
                 Toast.makeText(view.getContext(),"CLicked opening allWords",Toast.LENGTH_SHORT).show();
-                //Intent intent = new Intent(this,allWordsActivity.class);
-                //startActivity(intent);
-                greWordsDBHelper dbHelper=new greWordsDBHelper(getApplicationContext());
-                SQLiteDatabase db=dbHelper.getWritableDatabase();
-                ContentValues value=new ContentValues();
-                value.put("ID",1);
-                value.put("WORD","Alacrity");
-                value.put("ATTR1","Enjoying Movements");
-                long newRow=db.insert("WORDLIST",null,value);
-
+                Intent intent = new Intent(MainActivity.this,allWordsActivity.class);
+                startActivity(intent);
             }
         });
 
