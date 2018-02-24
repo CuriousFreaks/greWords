@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,43 +36,14 @@ public class allWordsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(lm);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
-        wordDefinition oneword= new wordDefinition(1,"test","testtttt");
-        dbHandler.readWordTable();
-        wordList.add(oneword);
+
+        int rowCount=dbHandler.getRowCount();
+        for(int i=1;i<=rowCount;++i)
+        {
+           wordDefinition aWord= dbHandler.readWordForARow(i);
+           wordList.add(aWord);
+           Log.v(MainActivity.TAG,"inisdfasfsdasdf asdf asd fa sdf");
+        }
         mAdapter.notifyDataSetChanged();
-
-        /*Button okButton = findViewById(R.id.ok);
-        okButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(dbHandler.isDBEmpty())
-                {
-                    dbHandler.initializeDB();
-                }
-                dbHandler.readWordTable();
-            }
-        });
-
-        Button int2=findViewById(R.id.int2);
-        int2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(dbHandler.isDBEmpty())
-                {
-
-                }
-                dbHandler.initializeDB2();
-                dbHandler.readWordTable();;
-            }
-        });
-
-        Button rd=findViewById(R.id.rd);
-        rd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-               dbHandler.readWordTable();;
-            }
-        });
-*/
     }
 }
