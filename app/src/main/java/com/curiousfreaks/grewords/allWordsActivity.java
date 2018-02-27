@@ -18,6 +18,7 @@ import java.util.List;
 public class allWordsActivity extends AppCompatActivity {
 
     private List<wordDefinition> wordList =new ArrayList<wordDefinition>();
+    List<wordDefinition> allWords= new ArrayList<wordDefinition>();
     private RecyclerView recyclerView;
     private wordListRecyclerAdapter mAdapter;
     @Override
@@ -25,7 +26,7 @@ public class allWordsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.wordlistcontainer);
-        final DBHandler dbHandler= new DBHandler(getApplicationContext());
+        final DatabaseHandler dbHandler= new DatabaseHandler(getApplicationContext());
 
         if(dbHandler.isDBEmpty())
            dbHandler.initializeDB();
@@ -37,13 +38,13 @@ public class allWordsActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 
-        int rowCount=dbHandler.getRowCount();
-        for(int i=1;i<=rowCount;++i)
+        allWords=dbHandler.getAllWords();
+        for(wordDefinition aword: allWords)
         {
-           wordDefinition aWord= dbHandler.readWordForARow(i);
-           wordList.add(aWord);
-           Log.v(MainActivity.TAG,"inisdfasfsdasdf asdf asd fa sdf");
+            wordList.add(aword);
+            Log.v(MainActivity.TAG,"wordList recycler list updated");
         }
+
         mAdapter.notifyDataSetChanged();
     }
 }
