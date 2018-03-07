@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -29,6 +30,7 @@ public class FlashCards extends AppCompatActivity {
     wordDefinition cardWord=null;
     int flip = 0,totalWordsCount;
     ArrayList<Integer> randomNumbersList;
+    List<wordDefinition> allWords;
     Button gotit,notyet;
     TextView wordText;
 
@@ -38,17 +40,24 @@ public class FlashCards extends AppCompatActivity {
         setContentView(R.layout.flash_cards);
 
         final DatabaseHandler dbHandler = new DatabaseHandler(getApplicationContext());
-       // cardWord = new wordDefinition();
+        cardWord = new wordDefinition();
 
         gotit = findViewById(R.id.gotit);
         notyet = findViewById(R.id.notyet);
         wordText = findViewById(R.id.wordText);
 
-        totalWordsCount = dbHandler.getWordsCount();
+        allWords=new ArrayList<>();
+        allWords=dbHandler.getAllWords();
+        totalWordsCount=allWords.size();
         randomNumbersList=new ArrayList<>();
+        if (randomNumbersList.isEmpty()) {
+            for(int i=0;i<totalWordsCount;++i){
+                randomNumbersList.add(new Integer((int)allWords.get(i).getId()));
+            }
+        }
 
         if(dbHandler.isAnyLeantNo()) {
-            refreshCardView(dbHandler);
+            refreshCardViewNew(dbHandler);
         }
         else{
            alreadyLearntAllWords();
@@ -58,15 +67,15 @@ public class FlashCards extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if((dbHandler.updateDBColumn(cardWord.getId(),null,null,"YES"))!=1) {
+                if((dbHandler.updateDBColumn(cardWord.getId(),null,null,"YES",null))==1) {
+                    Integer currentCardNum=new Integer((int)cardWord.getId());
+                    randomNumbersList.remove(currentCardNum);
+                    refreshCardViewNew(dbHandler);
+
+                }else
+                {
                     Log.v(MainActivity.TAG, "Update db not returned 1 value");
                     Toast.makeText(getApplicationContext(),"Facing issue in saving your progress",Toast.LENGTH_SHORT).show();
-                }
-                if(dbHandler.isAnyLeantNo()) {
-                    refreshCardView(dbHandler);
-                }
-                else{
-                    alreadyLearntAllWords();
                 }
             }
         });
@@ -74,7 +83,7 @@ public class FlashCards extends AppCompatActivity {
         notyet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshCardView(dbHandler);
+                refreshCardViewNew(dbHandler);
             }
         });
         wordText.setOnClickListener(new View.OnClickListener() {
@@ -115,7 +124,7 @@ public class FlashCards extends AppCompatActivity {
 
         Log.v(MainActivity.TAG,"Entering refreshCardView");
         int randomCardNumber;
-        dHandler.printDB();
+        //dHandler.printDB();
         String learnt;
         do{
             if((randomCardNumber = generateRandomCardNumber())==0)
@@ -123,7 +132,7 @@ public class FlashCards extends AppCompatActivity {
                 alreadyLearntAllWords();
                 return;
             }
-            cardWord=new wordDefinition(dHandler.getAWord(randomCardNumber));
+            cardWord.copyWord(dHandler.getAWord(randomCardNumber));
             randomNumbersList.add(new Integer(randomCardNumber));
             learnt=cardWord.getLearnt();
         }while(learnt.equals("YES"));
@@ -133,6 +142,50 @@ public class FlashCards extends AppCompatActivity {
         wordText.setText(txt);
         Log.v(MainActivity.TAG,"Exit refreshCardView");
 
+    }
+    public void refreshCardViewNew(DatabaseHandler dHandler)
+    {
+        int randomID;
+        wordDefinition aWord=new wordDefinition();
+        String learnt;
+       // dHandler.printDB();
+        do{
+            if(randomNumbersList.isEmpty()) {
+                alreadyLearntAllWords();
+                return;
+            }
+            Collections.shuffle(randomNumbersList);
+
+            randomID=randomNumbersList.get(0).intValue();
+            if(cardWord!=null || (new Long(cardWord.getId())!=null))
+            {
+                if(randomID==cardWord.getId() && !(randomNumbersList.size()==1))
+                    continue;
+            }
+            Iterator<wordDefinition> itr=allWords.iterator();
+            while(itr.hasNext())
+            {
+                aWord=itr.next();
+                if(randomID==aWord.getId())
+                {
+                    if(aWord.getLearnt().equals("NO")) {
+                        cardWord.copyWord(aWord);
+                        wordText.setText(cardWord.getWord());
+                        return;
+                    }
+                    else
+                    {
+                        randomNumbersList.remove(new Integer(randomID));
+                        break;
+                    }
+                }
+            }
+        }while(true);
+    }
+    public Integer generateRandomNumberOnly()
+    {
+        Random r=new Random();
+        return r.nextInt(totalWordsCount)+1;
     }
     public void alreadyLearntAllWords()
     {
