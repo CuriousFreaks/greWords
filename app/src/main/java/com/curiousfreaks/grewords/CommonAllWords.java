@@ -102,13 +102,13 @@ public class CommonAllWords extends AppCompatActivity implements wordListRecycle
 
                     if (aWord.getBookmarked().equals("YES")) {
                         success = dbHandler.updateDBColumn(uniqueId, null, null, null, null, null, null, null, null, null, null, "NO");
-                        starImage.setImageResource(R.drawable.bw_star);
+                        starImage.setImageResource(R.mipmap.bw_star);
                         aWord.setBookmarked("NO");
                         break;
                     }
                     if (aWord.getBookmarked().equals("NO")) {
                         success = dbHandler.updateDBColumn(uniqueId, null, null, null, null, null, null, null, null, null, null, "YES");
-                        starImage.setImageResource(R.drawable.yellow_star);
+                        starImage.setImageResource(R.mipmap.yellow_star);
                         aWord.setBookmarked("YES");
                         break;
                     }

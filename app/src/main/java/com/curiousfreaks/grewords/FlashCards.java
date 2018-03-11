@@ -1,21 +1,18 @@
 package com.curiousfreaks.grewords;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -26,13 +23,14 @@ import java.util.Random;
  */
 
 public class FlashCards extends AppCompatActivity {
-    private File flashCardFile;
     wordDefinition cardWord=null;
     int flip = 0,totalWordsCount;
     ArrayList<Integer> randomNumbersList;
     List<wordDefinition> allWords;
     Button gotit,notyet;
-    TextView wordText;
+    TextView wordOrMeaningText,sentenceText;
+    Animation flashCardAnimationNext,flashCardAnimationDisappear,flashCardAnimation;
+    LinearLayout flashCard;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,10 +39,14 @@ public class FlashCards extends AppCompatActivity {
 
         final DatabaseHandler dbHandler = new DatabaseHandler(getApplicationContext());
         cardWord = new wordDefinition();
+        flashCardAnimationNext= AnimationUtils.loadAnimation(getApplicationContext(),R.anim.flash_card_next);
+        flashCardAnimationDisappear= AnimationUtils.loadAnimation(getApplicationContext(),R.anim.flash_card_disappear);
 
         gotit = findViewById(R.id.gotit);
         notyet = findViewById(R.id.notyet);
-        wordText = findViewById(R.id.wordText);
+        wordOrMeaningText = findViewById(R.id.wordOrMeaningFC);
+        sentenceText=findViewById(R.id.sentenseFC);
+        flashCard=findViewById(R.id.flashCard);
 
         allWords=new ArrayList<>();
         allWords=dbHandler.getAllWords();
@@ -57,7 +59,7 @@ public class FlashCards extends AppCompatActivity {
         }
 
         if(dbHandler.isAnyLeantNo()) {
-            refreshCardViewNew(dbHandler);
+            refreshCardView(dbHandler);
         }
         else{
            alreadyLearntAllWords();
@@ -66,11 +68,27 @@ public class FlashCards extends AppCompatActivity {
         gotit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                if((dbHandler.updateDBColumn(cardWord.getId(),null,null,"YES",null))==1) {
+                if((dbHandler.updateDBColumn(cardWord.getId(),null,null,null,null,null,null,null,null,"YES",null,null))==1) {
                     Integer currentCardNum=new Integer((int)cardWord.getId());
                     randomNumbersList.remove(currentCardNum);
-                    refreshCardViewNew(dbHandler);
+                    flashCardAnimationDisappear.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                                refreshCardView(dbHandler);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                    flashCard.startAnimation(flashCardAnimationDisappear);
+                    //setAnimationListner(flashCardAnimationDisappear,dbHandler);
 
                 }else
                 {
@@ -83,18 +101,38 @@ public class FlashCards extends AppCompatActivity {
         notyet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshCardViewNew(dbHandler);
+                flashCardAnimationNext.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        refreshCardView(dbHandler);
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+               flashCard.startAnimation(flashCardAnimationNext);
             }
         });
-        wordText.setOnClickListener(new View.OnClickListener() {
+        wordOrMeaningText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (flip == 0) {
-                    wordText.setText(cardWord.getAttr1());
+                    wordOrMeaningText.setText(cardWord.getMeaning());
+                    sentenceText.setVisibility(View.VISIBLE);
+                    sentenceText.setText(cardWord.getSentence());
                     Log.v(MainActivity.TAG,"word id is now: "+cardWord.getId());
                     flip=1;
                 } else {
-                    wordText.setText(cardWord.getWord());
+                    wordOrMeaningText.setText(cardWord.getWord());
+                    sentenceText.setVisibility(View.INVISIBLE);
                     flip = 0;
                 }
             }
@@ -120,35 +158,14 @@ public class FlashCards extends AppCompatActivity {
         }
         return rNumber;
     }
-    public void refreshCardView(DatabaseHandler dHandler) {
-
-        Log.v(MainActivity.TAG,"Entering refreshCardView");
-        int randomCardNumber;
-        //dHandler.printDB();
-        String learnt;
-        do{
-            if((randomCardNumber = generateRandomCardNumber())==0)
-            {
-                alreadyLearntAllWords();
-                return;
-            }
-            cardWord.copyWord(dHandler.getAWord(randomCardNumber));
-            randomNumbersList.add(new Integer(randomCardNumber));
-            learnt=cardWord.getLearnt();
-        }while(learnt.equals("YES"));
-
-        randomNumbersList.remove(new Integer(randomCardNumber));
-        String txt=cardWord.getWord();
-        wordText.setText(txt);
-        Log.v(MainActivity.TAG,"Exit refreshCardView");
-
-    }
-    public void refreshCardViewNew(DatabaseHandler dHandler)
+    public void refreshCardView(DatabaseHandler dHandler)
     {
         int randomID;
         wordDefinition aWord=new wordDefinition();
-        String learnt;
-       // dHandler.printDB();
+        if(sentenceText.getVisibility()==View.VISIBLE) {
+            sentenceText.setVisibility(View.INVISIBLE);
+            flip = 0;
+        }
         do{
             if(randomNumbersList.isEmpty()) {
                 alreadyLearntAllWords();
@@ -170,7 +187,7 @@ public class FlashCards extends AppCompatActivity {
                 {
                     if(aWord.getLearnt().equals("NO")) {
                         cardWord.copyWord(aWord);
-                        wordText.setText(cardWord.getWord());
+                        wordOrMeaningText.setText(cardWord.getWord());
                         return;
                     }
                     else
@@ -182,16 +199,33 @@ public class FlashCards extends AppCompatActivity {
             }
         }while(true);
     }
-    public Integer generateRandomNumberOnly()
-    {
-        Random r=new Random();
-        return r.nextInt(totalWordsCount)+1;
-    }
     public void alreadyLearntAllWords()
     {
         gotit.setVisibility(View.INVISIBLE);
         notyet.setVisibility(View.INVISIBLE);
-        wordText.setText("Congrats ! you have learnt all words");
+        wordOrMeaningText.setText("Congrats ! you have learnt all words");
 
+    }
+    public void setAnimationListner(Animation varAnim, final DatabaseHandler dbHandler)
+    {
+        flashCardAnimation=varAnim;
+        flashCardAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                refreshCardView(dbHandler);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        flashCard.startAnimation(flashCardAnimationDisappear);
     }
 }

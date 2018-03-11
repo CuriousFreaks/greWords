@@ -1,14 +1,10 @@
 package com.curiousfreaks.grewords;
 
-import android.app.ActionBar;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,7 +14,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -30,6 +25,7 @@ import java.net.URLConnection;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "Curious Freaks";
+    public int fileSize = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +35,12 @@ public class MainActivity extends AppCompatActivity {
         final Button allWords, flashCards, myWordsList;
 
         startDownloadWithRefershDB();
-
         allWords = findViewById(R.id.allwords);
         allWords.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(view.getContext(), "CLicked opening allWords", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, allWordsActivity.class);
+                Intent intent = new Intent(MainActivity.this, CommonAllWords.class);
+                intent.putExtra("ACTIVITY_TYPE","ALL_WORDS");
                 startActivity(intent);
             }
         });
@@ -54,7 +49,9 @@ public class MainActivity extends AppCompatActivity {
         flashCards.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(view.getContext(), "CLicked opening flashCards", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, FlashCards.class);
+                startActivity(intent);
+
             }
         });
 
@@ -62,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
         myWordsList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(view.getContext(), "CLicked opening myWordsList", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, CommonAllWords.class);
+                intent.putExtra("ACTIVITY_TYPE","MY_FAV_WORDS");
+                startActivity(intent);
             }
         });
 
@@ -78,10 +77,12 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setMax(100);
         progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_OUT);
 
-        RelativeLayout rl = findViewById(R.id.mainActRelativeLayout);
-        rl.addView(progressBar);
+        //RelativeLayout rl = findViewById(R.id.activityMainLayout);
+       // rl.addView(progressBar);
 
         progressBar.setProgress(0);
+        ///change this when working on progress bar
+        progressBar.setVisibility(View.INVISIBLE);
 
         new Thread(new Runnable() {
             @Override
@@ -106,12 +107,12 @@ public class MainActivity extends AppCompatActivity {
                     byte data[] = new byte[1024];
                     int readBytes;
                     while ((readBytes = istream.read(data)) != -1) {
-                        globalVar.fileSize = globalVar.fileSize + readBytes;
+                        fileSize = fileSize + readBytes;
                         fos.write(data, 0, readBytes);
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                progressBar.incrementProgressBy((globalVar.fileSize / fetchSize) * 100);
+                                progressBar.incrementProgressBy((fileSize / fetchSize) * 100);
                             }
                         });
                     }
@@ -121,12 +122,12 @@ public class MainActivity extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            if (globalVar.fileSize == fetchSize) {
+                            if (fileSize == fetchSize) {
                                 progressBar.setVisibility(View.INVISIBLE);
                             }
                         }
                     });
-                    Log.v(MainActivity.TAG, "Total json file size" + globalVar.fileSize);
+                    Log.v(MainActivity.TAG, "Total json file size" + fileSize);
                     istream.close();
                     fos.close();
                     Log.v(MainActivity.TAG, "Exit Thread execution" );

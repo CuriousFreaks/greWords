@@ -4,47 +4,52 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.curiousfreaks.grewords.MainActivity">
-
-
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+    tools:context="com.curiousfreaks.grewords.MainActivity"
+    android:background="@drawable/bg_gradient">
+    <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+        android:layout_margin="8dp"
+    android:orientation="vertical"
+        android:gravity="center"
+        android:id="@+id/activityMainLayout"
+        >
 
         <Button
             android:id="@+id/allwords"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="104dp"
-            android:text="All Words" />
+            android:text="All Words"
+            android:theme="@style/buttonTheme"
+            android:elevation="10dp"
+            android:layout_margin="10dp"
+            android:stateListAnimator="@null"
+            android:background="@drawable/shadow"
+            />
 
         <Button
             android:id="@+id/flashcards"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/allwords"
-            android:layout_below="@+id/allwords"
-            android:layout_marginTop="26dp"
-            android:text="Flash Card" />
+            android:layout_margin="10dp"
+            android:text="Flash Card"
+            android:theme="@style/buttonTheme"
+            android:elevation="10dp"
+            android:stateListAnimator="@null"
+            android:background="@drawable/shadow"
+            />
 
         <Button
             android:id="@+id/mywordslist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/flashcards"
-            android:layout_below="@+id/flashcards"
-            android:layout_marginTop="34dp"
-            android:text="My Words list" />
-    </RelativeLayout>
+            android:text="My Words list"
+            android:layout_margin="10dp"
+            android:theme="@style/buttonTheme"
+            android:elevation="10dp"
+            android:stateListAnimator="@null"
+            android:background="@drawable/shadow"
+            />
+
+        </LinearLayout>
 </android.support.constraint.ConstraintLayout>

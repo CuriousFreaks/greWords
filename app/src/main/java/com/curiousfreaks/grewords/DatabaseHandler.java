@@ -38,9 +38,9 @@ public class DatabaseHandler extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        String qr= "CREATE TABLE "+TABLE_NAME+" (ID INTEGER PRIMARY KEY, WORD TEXT, ATTR1 TEXT, LEARNT TEXT DEFAULT NO, MYFAV TEXT DEFAULT NO )";
+        String qr= "CREATE TABLE "+TABLE_NAME+" (ID INTEGER PRIMARY KEY, WORD TEXT, TYPE TEXT, MEANING TEXT, SENTENCE TEXT, SYNONYMS TEXT," +
+                " ANTONYMS TEXT, LINK TEXT, ATTR1 TEXT, ATTR2 TEXT, LEARNT TEXT DEFAULT NO, BOOKMARKED TEXT DEFAULT NO, FREQUENCY INTEGER DEFAULT 1 )";
         sqLiteDatabase.execSQL(qr);
-
     }
 
     @Override
@@ -55,13 +55,21 @@ public class DatabaseHandler extends SQLiteOpenHelper{
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public void insertAWord(long id, String word, String attr1)
+    public void insertAWord(long id, String word, String type, String meaning, String sentence, String synonyms, String antonyms, String link, String attr1, String attr2)
     {
         SQLiteDatabase db=this.getWritableDatabase();
         ContentValues value=new ContentValues();
         value.put("ID",id);
         value.put("WORD",word);
+        value.put("TYPE",type);
+        value.put("MEANING",meaning);
+        value.put("SENTENCE",sentence);
+        value.put("SYNONYMS",synonyms);
+        value.put("ANTONYMS",antonyms);
+        value.put("LINK",link);
         value.put("ATTR1",attr1);
+        value.put("ATTR2",attr2);
+
         long newRow=db.insert( this.TABLE_NAME,null,value);
         if(newRow == -1)
             Log.v(MainActivity.TAG,"a row with id ="+id+" already exists");
@@ -81,8 +89,17 @@ public class DatabaseHandler extends SQLiteOpenHelper{
         String[] projection={
                 "ID",
                 "WORD",
+                "TYPE",
+                "MEANING",
+                "SENTENCE",
+                "SYNONYMS",
+                "ANTONYMS",
+                "LINK",
                 "ATTR1",
-                "LEARNT"
+                "ATTR2",
+                "LEARNT",
+                "BOOKMARKED",
+
         };
         Cursor cursor = db.query(
                 this.TABLE_NAME,   // The table to query
@@ -96,19 +113,26 @@ public class DatabaseHandler extends SQLiteOpenHelper{
         cursor.moveToFirst();
        do
         {
-            Long id=cursor.getLong(cursor.getColumnIndexOrThrow("ID"));
-            String word=cursor.getString(cursor.getColumnIndexOrThrow("WORD"));
-            String attr1=cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"));
-            String learnt=cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"));
-            Log.v(MainActivity.TAG,"Printing complete db"+Long.toString(id)+",  "+word+",  "+attr1+",  "+learnt);
-            Log.v(MainActivity.TAG,word);
-            Log.v(MainActivity.TAG,attr1);
+            Log.v(MainActivity.TAG,"Printing complete db : "+Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow("ID")))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("WORD"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("TYPE"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("MEANING"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LINK"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR2"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"))
+                    +",  "+cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED"))
+            );
         } while (cursor.moveToNext());
         cursor.close();
         db.close();
     }
-    public wordDefinition getAWord(int id)
+    public wordDefinition getAWord(long id)
     {
+        Log.v(MainActivity.TAG, "Entering getAWord");
         if(isDBEmpty())
         {
             Log.v(MainActivity.TAG, "Database is empty.. nothing to read");
@@ -120,13 +144,37 @@ public class DatabaseHandler extends SQLiteOpenHelper{
         Cursor cursor = db.rawQuery(query,null);
         cursor.moveToFirst();
         wordDefinition wd=new wordDefinition();
+
         wd.setId(cursor.getLong(cursor.getColumnIndexOrThrow("ID")));
         wd.setWord(cursor.getString(cursor.getColumnIndexOrThrow("WORD")));
+        wd.setType(cursor.getString(cursor.getColumnIndexOrThrow("TYPE")));
+        wd.setMeaning(cursor.getString(cursor.getColumnIndexOrThrow("MEANING")));
+        wd.setSentence(cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE")));
+        wd.setSynonyms(cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS")));
+        wd.setAntonyms(cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS")));
+        wd.setLink(cursor.getString(cursor.getColumnIndexOrThrow("LINK")));
         wd.setAttr1(cursor.getString(cursor.getColumnIndexOrThrow("ATTR1")));
+        wd.setAttr2(cursor.getString(cursor.getColumnIndexOrThrow("ATTR2")));
         wd.setLearnt(cursor.getString(cursor.getColumnIndexOrThrow("LEARNT")));
-        Log.v(MainActivity.TAG,"A word found: "+wd.getId()+","+wd.getWord()+","+wd.getAttr1()+","+wd.getLearnt());
+        wd.setBookmarked(cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED")));
+
+
+        Log.v(MainActivity.TAG,"a word found:\n "+Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow("ID")))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("WORD"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("TYPE"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("MEANING"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LINK"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR2"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"))
+                +",  "+cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED"))
+        );
         cursor.close();
         db.close();
+        Log.v(MainActivity.TAG, "Entering getAWord");
         return wd;
     }
     public boolean isDBEmpty()
@@ -169,12 +217,73 @@ public class DatabaseHandler extends SQLiteOpenHelper{
                 wordDefinition aWord=new wordDefinition();
                 aWord.setId(cursor.getLong(cursor.getColumnIndexOrThrow("ID")));
                 aWord.setWord(cursor.getString(cursor.getColumnIndexOrThrow("WORD")));
+                aWord.setType(cursor.getString(cursor.getColumnIndexOrThrow("TYPE")));
+                aWord.setMeaning(cursor.getString(cursor.getColumnIndexOrThrow("MEANING")));
+                aWord.setSentence(cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE")));
+                aWord.setSynonyms(cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS")));
+                aWord.setAntonyms(cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS")));
+                aWord.setLink(cursor.getString(cursor.getColumnIndexOrThrow("LINK")));
                 aWord.setAttr1(cursor.getString(cursor.getColumnIndexOrThrow("ATTR1")));
+                aWord.setAttr2(cursor.getString(cursor.getColumnIndexOrThrow("ATTR2")));
                 aWord.setLearnt(cursor.getString(cursor.getColumnIndexOrThrow("LEARNT")));
-                Log.v(MainActivity.TAG,Long.toString(aWord.getId()));
-                Log.v(MainActivity.TAG,aWord.getWord());
-                Log.v(MainActivity.TAG,aWord.getAttr1());
-                Log.v(MainActivity.TAG,aWord.getLearnt());
+                aWord.setBookmarked(cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED")));
+                Log.v(MainActivity.TAG,"adding word :\n "+Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow("ID")))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("WORD"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("TYPE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("MEANING"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LINK"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR2"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED"))
+                );
+                wordList.add(aWord);
+            }while(cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return wordList;
+
+    }
+    public List<wordDefinition> getBookmarkedWords()
+    {
+        List<wordDefinition> wordList =new ArrayList<>();
+        SQLiteDatabase db=this.getReadableDatabase();
+        String query="SELECT * FROM "+this.TABLE_NAME+" WHERE BOOKMARKED = \"YES\"";
+        Cursor cursor=db.rawQuery(query,null);
+        if(cursor.moveToFirst())
+        {
+            do
+            {
+                wordDefinition aWord=new wordDefinition();
+                aWord.setId(cursor.getLong(cursor.getColumnIndexOrThrow("ID")));
+                aWord.setWord(cursor.getString(cursor.getColumnIndexOrThrow("WORD")));
+                aWord.setType(cursor.getString(cursor.getColumnIndexOrThrow("TYPE")));
+                aWord.setMeaning(cursor.getString(cursor.getColumnIndexOrThrow("MEANING")));
+                aWord.setSentence(cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE")));
+                aWord.setSynonyms(cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS")));
+                aWord.setAntonyms(cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS")));
+                aWord.setLink(cursor.getString(cursor.getColumnIndexOrThrow("LINK")));
+                aWord.setAttr1(cursor.getString(cursor.getColumnIndexOrThrow("ATTR1")));
+                aWord.setAttr2(cursor.getString(cursor.getColumnIndexOrThrow("ATTR2")));
+                aWord.setLearnt(cursor.getString(cursor.getColumnIndexOrThrow("LEARNT")));
+                aWord.setBookmarked(cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED")));
+                Log.v(MainActivity.TAG,"adding word :\n "+Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow("ID")))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("WORD"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("TYPE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("MEANING"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LINK"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR2"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED"))
+                );
                 wordList.add(aWord);
             }while(cursor.moveToNext());
         }
@@ -195,8 +304,29 @@ public class DatabaseHandler extends SQLiteOpenHelper{
                 wordDefinition aWord=new wordDefinition();
                 aWord.setId(cursor.getLong(cursor.getColumnIndexOrThrow("ID")));
                 aWord.setWord(cursor.getString(cursor.getColumnIndexOrThrow("WORD")));
+                aWord.setType(cursor.getString(cursor.getColumnIndexOrThrow("TYPE")));
+                aWord.setMeaning(cursor.getString(cursor.getColumnIndexOrThrow("MEANING")));
+                aWord.setSentence(cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE")));
+                aWord.setSynonyms(cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS")));
+                aWord.setAntonyms(cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS")));
+                aWord.setLink(cursor.getString(cursor.getColumnIndexOrThrow("LINK")));
                 aWord.setAttr1(cursor.getString(cursor.getColumnIndexOrThrow("ATTR1")));
-                Log.v(MainActivity.TAG,"Fetch word: "+Long.toString(aWord.getId())+","+aWord.getWord()+","+aWord.getAttr1());
+                aWord.setAttr2(cursor.getString(cursor.getColumnIndexOrThrow("ATTR2")));
+                aWord.setLearnt(cursor.getString(cursor.getColumnIndexOrThrow("LEARNT")));
+                aWord.setBookmarked(cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED")));
+                Log.v(MainActivity.TAG,"adding word :\n "+Long.toString(cursor.getLong(cursor.getColumnIndexOrThrow("ID")))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("WORD"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("TYPE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("MEANING"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SENTENCE"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("SYNONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ANTONYMS"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LINK"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR1"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("ATTR2"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("LEARNT"))
+                        +",  "+cursor.getString(cursor.getColumnIndexOrThrow("BOOKMARKED"))
+                );
                 wordList.add(aWord);
             }while(cursor.moveToNext());
         }
@@ -219,8 +349,17 @@ public class DatabaseHandler extends SQLiteOpenHelper{
                 Long id=Long.parseLong(jObject.getString("ID"));
                 String word=jObject.getString("WORD");
                 String attr1=jObject.getString("ATTR1");
-                this.insertAWord(id,word,attr1);
-                Log.v(MainActivity.TAG,"id="+id+"   word:"+word+"    attr:"+attr1);
+                this.insertAWord(Long.parseLong(jObject.getString("ID")),
+                        jObject.getString("WORD"),
+                        jObject.getString("TYPE"),
+                        jObject.getString("MEANING"),
+                        jObject.getString("SENTENCE"),
+                        jObject.getString("SYNONYMS"),
+                        jObject.getString("ANTONYMS"),
+                        jObject.getString("LINK"),
+                        jObject.getString("ATTR1"),
+                        jObject.getString("ATTR2")
+                        );
             }
         }catch (Exception e)
         {
@@ -243,16 +382,17 @@ public class DatabaseHandler extends SQLiteOpenHelper{
             while ((line = br.readLine()) != null) {
                 jString+=line;
             }
-
         } catch (Exception e)
         {
-
+            e.printStackTrace();
         }
         return jString;
     }
-    public int updateDBColumn(long id, String word, String attr1, String learnt){
+    public int updateDBColumn(long id, String word, String type, String meaning, String sentence, String synonyms,
+                              String antonyms, String link, String attr1, String attr2, String learnt, String bookmarked){
         ContentValues cv=new ContentValues();
         String selection="ID = ?";
+
         if(Long.valueOf(id)==null)
         {
             Log.v(MainActivity.TAG,"id can not be null to update a row");
@@ -261,10 +401,27 @@ public class DatabaseHandler extends SQLiteOpenHelper{
             cv.put("ID",Long.toString(id));
         if(word!=null)
             cv.put("WORD",word);
+        if(type!=null)
+            cv.put("TYPE",type);
+        if(meaning!=null)
+            cv.put("MEANING",type);
+        if(sentence!=null)
+            cv.put("SENTENCE",type);
+        if(synonyms!=null)
+            cv.put("SYNONYMS",synonyms);
+        if(antonyms!=null)
+            cv.put("ANTONYMS",antonyms);
+        if(link!=null)
+            cv.put("LINK",link);
         if(attr1!=null)
             cv.put("ATTR1",attr1);
+        if(attr2!=null)
+            cv.put("ATTR2",attr2);
         if(learnt!=null)
             cv.put("LEARNT",learnt);
+        if(bookmarked!=null)
+            cv.put("BOOKMARKED",bookmarked);
+
         SQLiteDatabase db=this.getReadableDatabase();
         String[] selectionArgs={Long.toString(id)};
 
@@ -272,6 +429,7 @@ public class DatabaseHandler extends SQLiteOpenHelper{
         db.close();
         return count;
     }
+
     public boolean isAnyLeantNo()
     {
         SQLiteDatabase db= this.getReadableDatabase();

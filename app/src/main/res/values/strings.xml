@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">greWords</string>
+    <string name="app_name">High Frequency GRE Words</string>
+    <string name="main_activity">High Frequency GRE Words</string>
+    <string name="word_list">High Frequency GRE Words</string>
+    <string name="flash_card">Flash Cards</string>
+    <string name="word_detail">Word Details</string>
+    <string name="word_bookmarked">My Words</string>
 </resources>
